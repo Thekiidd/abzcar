@@ -22,10 +22,10 @@ http://localhost:4173
 
 ## Controles
 
-- **Clic en "Entrar en modo primera persona"**: activa navegación FPS
+- **Clic en "Entrar en modo primera persona" o clic en la escena**: activa navegación FPS
 - **W / A / S / D**: caminar
 - **Mouse**: mirar alrededor
-- **Shift**: correr
+- **Shift (izq/der)**: correr
 - **ESC**: salir del modo FPS
 
 
