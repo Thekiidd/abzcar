@@ -26,3 +26,27 @@ http://localhost:4173
 - **Q / E**: subir / bajar cámara
 - **Mouse (arrastrar)**: orbitar
 - **Rueda**: zoom
+
+
+## Despliegue en Vercel
+
+Este repo ya incluye `vercel.json`, así que puedes desplegarlo como sitio estático.
+
+### Opción A: desde dashboard (recomendada)
+1. Sube este repo a GitHub.
+2. Entra en [Vercel](https://vercel.com/new).
+3. Importa el repositorio.
+4. Framework preset: **Other** (o sin framework).
+5. Build command: **vacío**.
+6. Output directory: **.**
+7. Deploy.
+
+### Opción B: con CLI
+```bash
+npm i -g vercel
+vercel login
+vercel --prod
+```
+
+## Nota
+Intenté desplegar automáticamente desde este entorno, pero falló por token inválido y restricciones de red saliente hacia la API de Vercel.
