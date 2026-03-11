@@ -42,3 +42,19 @@ p {
   opacity: 0.9;
   font-size: 0.9rem;
 }
+
+
+#enter-fp {
+  margin-top: 0.65rem;
+  border: none;
+  border-radius: 0.55rem;
+  padding: 0.55rem 0.8rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  background: #ffd25f;
+  cursor: pointer;
+}
+
+#enter-fp:hover {
+  filter: brightness(1.04);
+}

@@ -1,12 +1,12 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 
 const canvas = document.getElementById('scene');
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('#88c8ff');
+scene.background = new THREE.Color('#89c9ff');
 
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 500);
-camera.position.set(26, 12, 24);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 400);
+camera.position.set(-2, 1.72, 7);
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -14,251 +14,251 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.target.set(0, 5, 0);
-controls.maxPolarAngle = Math.PI / 2 - 0.03;
-controls.minDistance = 8;
-controls.maxDistance = 60;
-
-const hemiLight = new THREE.HemisphereLight('#d9f6ff', '#8d6c49', 0.9);
+const hemiLight = new THREE.HemisphereLight('#d8f3ff', '#7f6347', 0.82);
 scene.add(hemiLight);
 
-const sunLight = new THREE.DirectionalLight('#fff9dd', 1.1);
-sunLight.position.set(30, 35, 10);
+const sunLight = new THREE.DirectionalLight('#fff4d7', 1.15);
+sunLight.position.set(30, 42, 20);
 sunLight.castShadow = true;
 sunLight.shadow.mapSize.set(2048, 2048);
-sunLight.shadow.camera.near = 1;
-sunLight.shadow.camera.far = 120;
-sunLight.shadow.camera.left = -45;
-sunLight.shadow.camera.right = 45;
-sunLight.shadow.camera.top = 45;
-sunLight.shadow.camera.bottom = -45;
+sunLight.shadow.camera.left = -60;
+sunLight.shadow.camera.right = 60;
+sunLight.shadow.camera.top = 60;
+sunLight.shadow.camera.bottom = -60;
 scene.add(sunLight);
 
+const ambientInside = new THREE.PointLight('#ffd9a8', 1.4, 90, 1.8);
+ambientInside.position.set(0, 5.8, 0);
+scene.add(ambientInside);
+
 const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(220, 220),
-  new THREE.MeshStandardMaterial({ color: '#59b85d', roughness: 0.9 })
+  new THREE.PlaneGeometry(240, 240),
+  new THREE.MeshStandardMaterial({ color: '#57b95d', roughness: 0.96 })
 );
 ground.rotation.x = -Math.PI / 2;
 ground.receiveShadow = true;
 scene.add(ground);
 
-const street = new THREE.Mesh(
-  new THREE.PlaneGeometry(220, 20),
-  new THREE.MeshStandardMaterial({ color: '#3f434b', roughness: 0.95 })
+const road = new THREE.Mesh(
+  new THREE.PlaneGeometry(240, 22),
+  new THREE.MeshStandardMaterial({ color: '#434851', roughness: 1 })
 );
-street.position.y = 0.01;
-street.rotation.x = -Math.PI / 2;
-scene.add(street);
+road.rotation.x = -Math.PI / 2;
+road.position.set(0, 0.01, -16);
+scene.add(road);
 
 const sidewalk = new THREE.Mesh(
-  new THREE.BoxGeometry(220, 0.25, 9),
-  new THREE.MeshStandardMaterial({ color: '#a7adb8' })
+  new THREE.BoxGeometry(240, 0.24, 7),
+  new THREE.MeshStandardMaterial({ color: '#aeb6c1' })
 );
-sidewalk.position.set(0, 0.12, -7.5);
+sidewalk.position.set(0, 0.12, -11.5);
 sidewalk.receiveShadow = true;
 scene.add(sidewalk);
 
-const houseGroup = new THREE.Group();
-scene.add(houseGroup);
+const house = new THREE.Group();
+scene.add(house);
 
-const base = new THREE.Mesh(
-  new THREE.BoxGeometry(17, 8, 12),
-  new THREE.MeshStandardMaterial({ color: '#e4a7a5' })
-);
-base.position.set(0, 4, 0);
-base.castShadow = true;
-base.receiveShadow = true;
-houseGroup.add(base);
+const wallMat = new THREE.MeshStandardMaterial({ color: '#e8a8aa', roughness: 0.88 });
+const wallSideMat = new THREE.MeshStandardMaterial({ color: '#db9ba2', roughness: 0.88 });
+const roofMat = new THREE.MeshStandardMaterial({ color: '#c66a33', roughness: 0.8 });
+const floorMat = new THREE.MeshStandardMaterial({ color: '#c89b6f', roughness: 0.9 });
 
-const frontVolume = new THREE.Mesh(
-  new THREE.BoxGeometry(8, 6, 5),
-  new THREE.MeshStandardMaterial({ color: '#d99596' })
-);
-frontVolume.position.set(0, 3, 8.5);
-frontVolume.castShadow = true;
-frontVolume.receiveShadow = true;
-houseGroup.add(frontVolume);
-
-const garage = new THREE.Mesh(
-  new THREE.BoxGeometry(8, 5, 8),
-  new THREE.MeshStandardMaterial({ color: '#d49a84' })
-);
-garage.position.set(-12, 2.5, 1.5);
-garage.castShadow = true;
-garage.receiveShadow = true;
-houseGroup.add(garage);
-
-function addRoof(width, height, depth, pos, rotY = 0) {
-  const roof = new THREE.Mesh(
-    new THREE.ConeGeometry(width, height, 4),
-    new THREE.MeshStandardMaterial({ color: '#cf6f31', roughness: 0.75 })
-  );
-  roof.position.copy(pos);
-  roof.rotation.y = Math.PI / 4 + rotY;
-  roof.castShadow = true;
-  houseGroup.add(roof);
+function wall(width, height, depth, x, y, z, material = wallMat) {
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), material);
+  mesh.position.set(x, y, z);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  house.add(mesh);
+  return mesh;
 }
 
-addRoof(10, 4, 10, new THREE.Vector3(0, 10, 0));
-addRoof(5.2, 2.8, 5.2, new THREE.Vector3(0, 7.8, 8.5));
-addRoof(5.5, 2.6, 5.5, new THREE.Vector3(-12, 6.5, 1.5));
+// Exterior shell
+wall(24, 8, 0.5, 0, 4, 12, wallMat); // front
+wall(24, 8, 0.5, 0, 4, -12, wallMat); // back
+wall(0.5, 8, 24, -12, 4, 0, wallSideMat); // left
+wall(0.5, 8, 24, 12, 4, 0, wallSideMat); // right
 
-const chimney = new THREE.Mesh(
-  new THREE.BoxGeometry(1.8, 4, 1.8),
-  new THREE.MeshStandardMaterial({ color: '#b0573f' })
-);
-chimney.position.set(4.5, 10.5, -1.5);
-chimney.castShadow = true;
-houseGroup.add(chimney);
+const houseFloor = new THREE.Mesh(new THREE.BoxGeometry(23.5, 0.3, 23.5), floorMat);
+houseFloor.position.set(0, 0.15, 0);
+houseFloor.receiveShadow = true;
+house.add(houseFloor);
 
+// Rooms interior walls
+const pinkWall = new THREE.MeshStandardMaterial({ color: '#e38fc6', roughness: 0.87 });
+const salmonWall = new THREE.MeshStandardMaterial({ color: '#e79c8f', roughness: 0.86 });
+wall(0.4, 7.5, 23, -3, 3.75, 0, pinkWall); // central corridor divider
+wall(15, 7.5, 0.4, 4.5, 3.75, 2, salmonWall); // living / kitchen divider
+wall(10, 7.5, 0.4, -7, 3.75, -3, pinkWall); // left wing divider
+wall(0.4, 7.5, 9, 5.5, 3.75, -7.5, salmonWall); // kitchen nook
+
+// Archway / openings (by adding trims only, keep walkable gaps)
+const trimMat = new THREE.MeshStandardMaterial({ color: '#f5d0a2' });
+function trim(w, h, d, x, y, z) {
+  const t = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), trimMat);
+  t.position.set(x, y, z);
+  t.castShadow = true;
+  house.add(t);
+}
+trim(2.8, 0.2, 0.3, -3, 2.2, -7.5);
+trim(2.8, 0.2, 0.3, -3, 2.2, 7.5);
+trim(0.3, 2.2, 0.3, -4.4, 1.1, -7.5);
+trim(0.3, 2.2, 0.3, -1.6, 1.1, -7.5);
+trim(0.3, 2.2, 0.3, -4.4, 1.1, 7.5);
+trim(0.3, 2.2, 0.3, -1.6, 1.1, 7.5);
+
+// Roof (without ceiling to allow interior viewing)
+const roofMain = new THREE.Mesh(new THREE.ConeGeometry(17.3, 5.4, 4), roofMat);
+roofMain.rotation.y = Math.PI / 4;
+roofMain.position.set(0, 10.3, 0);
+roofMain.castShadow = true;
+house.add(roofMain);
+
+const garage = new THREE.Group();
+house.add(garage);
+const garageBody = new THREE.Mesh(new THREE.BoxGeometry(9, 5.8, 8.5), new THREE.MeshStandardMaterial({ color: '#d79d86' }));
+garageBody.position.set(16, 2.9, 3);
+garageBody.castShadow = true;
+garageBody.receiveShadow = true;
+garage.add(garageBody);
+const garageRoof = new THREE.Mesh(new THREE.ConeGeometry(6.7, 3.2, 4), roofMat);
+garageRoof.rotation.y = Math.PI / 4;
+garageRoof.position.set(16, 7.1, 3);
+garageRoof.castShadow = true;
+garage.add(garageRoof);
+
+// facade details closer to reference
 const doorPivot = new THREE.Group();
-doorPivot.position.set(2.8, 0, 10.95);
-houseGroup.add(doorPivot);
+doorPivot.position.set(1.4, 0, 11.78);
+house.add(doorPivot);
+const frontDoor = new THREE.Mesh(new THREE.BoxGeometry(2.1, 4.1, 0.2), new THREE.MeshStandardMaterial({ color: '#ce6e5f' }));
+frontDoor.position.set(-1.05, 2.05, 0);
+frontDoor.castShadow = true;
+doorPivot.add(frontDoor);
 
-const door = new THREE.Mesh(
-  new THREE.BoxGeometry(2, 4, 0.2),
-  new THREE.MeshStandardMaterial({ color: '#6f3f23' })
-);
-door.position.set(-1, 2, 0);
-door.castShadow = true;
-doorPivot.add(door);
-
-const garageDoor = new THREE.Mesh(
-  new THREE.BoxGeometry(5.5, 3.2, 0.15),
-  new THREE.MeshStandardMaterial({ color: '#f4f4f4' })
-);
-garageDoor.position.set(-12, 1.9, 5.55);
-houseGroup.add(garageDoor);
-
-function addWindow(x, y, z, w = 2.2, h = 1.7) {
-  const frame = new THREE.Mesh(
-    new THREE.BoxGeometry(w, h, 0.2),
-    new THREE.MeshStandardMaterial({ color: '#f8f4e5' })
-  );
+function windowUnit(x, y, z, w = 3.2, h = 2.4) {
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.2), new THREE.MeshStandardMaterial({ color: '#f7e9d3' }));
   frame.position.set(x, y, z);
   frame.castShadow = true;
-  houseGroup.add(frame);
+  house.add(frame);
 
   const glass = new THREE.Mesh(
-    new THREE.BoxGeometry(w - 0.22, h - 0.2, 0.08),
-    new THREE.MeshStandardMaterial({ color: '#8ad7ff', emissive: '#236488', emissiveIntensity: 0.35 })
+    new THREE.BoxGeometry(w - 0.25, h - 0.25, 0.08),
+    new THREE.MeshStandardMaterial({ color: '#8bcfe9', emissive: '#24586b', emissiveIntensity: 0.35 })
   );
-  glass.position.set(x, y, z + Math.sign(z) * 0.07);
-  houseGroup.add(glass);
+  glass.position.set(x, y, z + (z > 0 ? 0.1 : -0.1));
+  house.add(glass);
 }
 
-addWindow(-4.5, 5, 6.05);
-addWindow(4.4, 5, 6.05);
-addWindow(-5.8, 5, -6.05);
-addWindow(5.8, 5, -6.05);
-addWindow(-1.8, 2.3, 10.95, 2, 1.5);
-addWindow(-15, 2.8, 5.55, 2, 1.5);
+windowUnit(-6.5, 3.5, 11.85, 4.8, 3.5);
+windowUnit(8.2, 3.5, 11.85, 4.8, 3.5);
+windowUnit(-8.5, 4.6, -11.85, 3.4, 2.2);
+windowUnit(7.5, 4.6, -11.85, 3.4, 2.2);
 
-const walkway = new THREE.Mesh(
-  new THREE.BoxGeometry(2.5, 0.15, 13),
-  new THREE.MeshStandardMaterial({ color: '#c8bfb7' })
-);
-walkway.position.set(2.8, 0.08, 17);
-walkway.receiveShadow = true;
-scene.add(walkway);
-
-const fenceMaterial = new THREE.MeshStandardMaterial({ color: '#e6dfcd' });
-for (let i = -12; i <= 12; i += 1.3) {
-  const post = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1.8, 0.3), fenceMaterial);
-  post.position.set(i, 0.9, 14);
-  post.castShadow = true;
-  scene.add(post);
+// Interior furniture/details
+function addBox(w, h, d, x, y, z, color) {
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ color }));
+  mesh.position.set(x, y, z);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  house.add(mesh);
+  return mesh;
 }
-const fenceRail = new THREE.Mesh(new THREE.BoxGeometry(26, 0.2, 0.2), fenceMaterial);
-fenceRail.position.set(0, 1.4, 14);
-scene.add(fenceRail);
+
+// Living room
+addBox(4.8, 1, 2.1, -8, 0.5, 8, '#9a3a35'); // sofa
+addBox(2.8, 0.55, 1.2, -5.8, 0.28, 8, '#7a4a27'); // coffee table
+addBox(3, 0.8, 1.4, -8.5, 0.4, 4.2, '#5f3f2b'); // tv stand
+addBox(2.5, 1.6, 0.2, -8.5, 1.7, 3.35, '#222831'); // tv screen
+
+// Dining
+addBox(3.5, 0.65, 2.2, -0.5, 0.35, -1, '#8f5a33');
+addBox(0.7, 1.1, 0.7, 1.5, 0.55, -2.3, '#d7b58a');
+addBox(0.7, 1.1, 0.7, 1.5, 0.55, 0.3, '#d7b58a');
+addBox(0.7, 1.1, 0.7, -2.3, 0.55, -2.3, '#d7b58a');
+addBox(0.7, 1.1, 0.7, -2.3, 0.55, 0.3, '#d7b58a');
+
+// Kitchen
+addBox(4.8, 1.05, 0.9, 8.6, 0.52, -7.8, '#83b6de'); // cabinets
+addBox(2.4, 2, 1, 10, 1, -3.8, '#f0f5f8'); // fridge
+addBox(2.3, 0.95, 1.5, 7.6, 0.48, -3.7, '#7ec9cd'); // island
+
+// Stairs hint
+for (let i = 0; i < 7; i += 1) {
+  addBox(2.2, 0.22, 0.65, -1.5, 0.11 + i * 0.22, 4.5 - i * 0.64, '#bc8e62');
+}
+
+// Exterior props
+const path = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.15, 13), new THREE.MeshStandardMaterial({ color: '#cdbfb4' }));
+path.position.set(1.4, 0.08, 18.5);
+path.receiveShadow = true;
+scene.add(path);
 
 function addTree(x, z, scale = 1) {
-  const tree = new THREE.Group();
-  const trunk = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.35 * scale, 0.5 * scale, 3.2 * scale, 12),
-    new THREE.MeshStandardMaterial({ color: '#6d432a' })
-  );
-  trunk.position.y = 1.6 * scale;
+  const g = new THREE.Group();
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.36 * scale, 0.5 * scale, 3.4 * scale, 12), new THREE.MeshStandardMaterial({ color: '#6d432c' }));
+  trunk.position.y = 1.7 * scale;
   trunk.castShadow = true;
-  tree.add(trunk);
+  g.add(trunk);
 
-  const crown = new THREE.Mesh(
-    new THREE.SphereGeometry(1.8 * scale, 16, 16),
-    new THREE.MeshStandardMaterial({ color: '#3e9e45' })
-  );
-  crown.position.y = 4.2 * scale;
+  const crown = new THREE.Mesh(new THREE.SphereGeometry(1.85 * scale, 14, 14), new THREE.MeshStandardMaterial({ color: '#3ea048' }));
+  crown.position.y = 4.5 * scale;
   crown.castShadow = true;
-  tree.add(crown);
+  g.add(crown);
 
-  tree.position.set(x, 0, z);
-  scene.add(tree);
+  g.position.set(x, 0, z);
+  scene.add(g);
 }
 
-addTree(14, 10, 1.2);
-addTree(18, -4, 1);
-addTree(-24, -8, 1.4);
-addTree(-19, 10, 1.1);
+addTree(-22, 13, 1.2);
+addTree(-24, -5, 1.4);
+addTree(26, 10, 1.15);
+addTree(28, -6, 1.05);
 
 const car = new THREE.Group();
-const carBody = new THREE.Mesh(
-  new THREE.BoxGeometry(5.2, 1.5, 2.8),
-  new THREE.MeshStandardMaterial({ color: '#9dd750' })
-);
+scene.add(car);
+const carBody = new THREE.Mesh(new THREE.BoxGeometry(5.2, 1.45, 2.85), new THREE.MeshStandardMaterial({ color: '#b46aa0' }));
 carBody.position.y = 1.5;
 carBody.castShadow = true;
 car.add(carBody);
-
-const carTop = new THREE.Mesh(
-  new THREE.BoxGeometry(2.6, 1, 2.3),
-  new THREE.MeshStandardMaterial({ color: '#a9e25d' })
-);
-carTop.position.set(-0.4, 2.25, 0);
+const carTop = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1, 2.3), new THREE.MeshStandardMaterial({ color: '#c57ab2' }));
+carTop.position.set(-0.4, 2.22, 0);
 carTop.castShadow = true;
 car.add(carTop);
-
-for (const offsetX of [-1.8, 1.8]) {
-  for (const offsetZ of [-1.35, 1.35]) {
-    const wheel = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.45, 0.45, 0.5, 20),
-      new THREE.MeshStandardMaterial({ color: '#2c2c2c' })
-    );
+for (const wx of [-1.8, 1.8]) {
+  for (const wz of [-1.35, 1.35]) {
+    const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.5, 20), new THREE.MeshStandardMaterial({ color: '#232323' }));
     wheel.rotation.z = Math.PI / 2;
-    wheel.position.set(offsetX, 0.8, offsetZ);
+    wheel.position.set(wx, 0.8, wz);
     car.add(wheel);
   }
 }
+car.position.set(20, 0, -10.5);
 
-car.position.set(-30, 0, -1.6);
-scene.add(car);
+// Pointer lock first-person controls
+const controls = new PointerLockControls(camera, document.body);
+scene.add(controls.getObject());
 
-const clouds = [];
-for (let i = 0; i < 6; i += 1) {
-  const cloud = new THREE.Group();
-  for (let j = 0; j < 3; j += 1) {
-    const puff = new THREE.Mesh(
-      new THREE.SphereGeometry(2 + Math.random() * 0.8, 12, 12),
-      new THREE.MeshStandardMaterial({ color: '#ffffff' })
-    );
-    puff.position.set(j * 2.2, Math.random() * 0.8, Math.random() * 1.5);
-    cloud.add(puff);
-  }
-  cloud.position.set(-50 + i * 20, 22 + Math.random() * 5, -30 + Math.random() * 60);
-  clouds.push(cloud);
-  scene.add(cloud);
-}
+const ui = document.getElementById('ui');
+const lockHint = document.createElement('button');
+lockHint.textContent = 'Entrar en modo primera persona';
+lockHint.id = 'enter-fp';
+ui.appendChild(lockHint);
+
+lockHint.addEventListener('click', () => controls.lock());
+controls.addEventListener('lock', () => {
+  lockHint.style.display = 'none';
+});
+controls.addEventListener('unlock', () => {
+  lockHint.style.display = 'inline-block';
+});
 
 const keys = {
   KeyW: false,
   KeyA: false,
   KeyS: false,
   KeyD: false,
-  KeyQ: false,
-  KeyE: false,
+  ShiftLeft: false,
 };
-
 window.addEventListener('keydown', (e) => {
   if (e.code in keys) keys[e.code] = true;
 });
@@ -266,47 +266,47 @@ window.addEventListener('keyup', (e) => {
   if (e.code in keys) keys[e.code] = false;
 });
 
-function moveCamera(delta) {
-  const speed = 9 * delta;
-  const forward = new THREE.Vector3();
-  camera.getWorldDirection(forward);
-  forward.y = 0;
-  forward.normalize();
+const bounds = {
+  minX: -11,
+  maxX: 11,
+  minZ: -11,
+  maxZ: 11,
+};
 
-  const right = new THREE.Vector3().crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
-
-  if (keys.KeyW) camera.position.addScaledVector(forward, speed);
-  if (keys.KeyS) camera.position.addScaledVector(forward, -speed);
-  if (keys.KeyA) camera.position.addScaledVector(right, speed);
-  if (keys.KeyD) camera.position.addScaledVector(right, -speed);
-  if (keys.KeyQ) camera.position.y += speed;
-  if (keys.KeyE) camera.position.y -= speed;
-
-  controls.target.x += ((camera.position.x - controls.target.x) * 0.02);
-  controls.target.z += ((camera.position.z - controls.target.z) * 0.02);
-}
-
+const velocity = new THREE.Vector3();
+const direction = new THREE.Vector3();
 const clock = new THREE.Clock();
+
+function clampInsideHouse() {
+  const pos = controls.getObject().position;
+  pos.x = Math.max(bounds.minX, Math.min(bounds.maxX, pos.x));
+  pos.z = Math.max(bounds.minZ, Math.min(bounds.maxZ, pos.z));
+  pos.y = 1.72;
+}
 
 function animate() {
   const elapsed = clock.getElapsedTime();
   const delta = clock.getDelta();
 
-  moveCamera(delta);
-  controls.update();
+  doorPivot.rotation.y = Math.sin(elapsed * 1.15) * 0.2;
+  car.position.x -= delta * 4.2;
+  if (car.position.x < -33) car.position.x = 22;
+  sunLight.position.set(Math.cos(elapsed * 0.08) * 35, 24 + Math.sin(elapsed * 0.08) * 14, 20);
 
-  doorPivot.rotation.y = Math.sin(elapsed * 1.3) * 0.35;
+  if (controls.isLocked) {
+    const speed = keys.ShiftLeft ? 8.2 : 4.6;
 
-  car.position.x += delta * 8;
-  if (car.position.x > 35) car.position.x = -35;
+    direction.z = Number(keys.KeyW) - Number(keys.KeyS);
+    direction.x = Number(keys.KeyD) - Number(keys.KeyA);
+    direction.normalize();
 
-  clouds.forEach((cloud, index) => {
-    cloud.position.x += delta * (1.4 + index * 0.08);
-    if (cloud.position.x > 60) cloud.position.x = -60;
-  });
+    velocity.x = direction.x * speed * delta;
+    velocity.z = direction.z * speed * delta;
 
-  const sunAngle = elapsed * 0.08;
-  sunLight.position.set(Math.cos(sunAngle) * 35, 25 + Math.sin(sunAngle) * 15, 20);
+    controls.moveRight(velocity.x);
+    controls.moveForward(velocity.z);
+    clampInsideHouse();
+  }
 
   renderer.render(scene, camera);
   requestAnimationFrame(animate);

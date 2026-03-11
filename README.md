@@ -22,10 +22,11 @@ http://localhost:4173
 
 ## Controles
 
-- **W / A / S / D**: mover cámara
-- **Q / E**: subir / bajar cámara
-- **Mouse (arrastrar)**: orbitar
-- **Rueda**: zoom
+- **Clic en "Entrar en modo primera persona"**: activa navegación FPS
+- **W / A / S / D**: caminar
+- **Mouse**: mirar alrededor
+- **Shift**: correr
+- **ESC**: salir del modo FPS
 
 
 ## Despliegue en Vercel
