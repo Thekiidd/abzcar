@@ -50,3 +50,41 @@ vercel --prod
 
 ## Nota
 Intenté desplegar automáticamente desde este entorno, pero falló por token inválido y restricciones de red saliente hacia la API de Vercel.
+
+
+## Flujo recomendado de ramas + Vercel
+
+Para evitar que producción publique una rama equivocada, usa este flujo:
+
+- `main`: **producción** (deploy productivo en Vercel).
+- `work` o `feature/*`: **preview** (pruebas y desarrollo).
+
+### Pasar cambios de `work` a `main`
+
+#### Opción 1 (recomendada): Pull Request en GitHub
+1. `git push -u origin work`
+2. Crear PR: `work` -> `main`
+3. Revisar y hacer merge
+4. Vercel redeploya producción al detectar el push en `main`
+
+#### Opción 2: merge local
+```bash
+git checkout main
+git pull origin main
+git merge --no-ff work
+git push origin main
+```
+
+## Configuración correcta en Vercel
+
+En **Project Settings -> Git**:
+
+- **Production Branch**: `main`
+- Las demás ramas (`work`, `feature/*`) quedarán como **Preview Deployments** automáticamente.
+
+## Checklist rápido de validación
+
+1. En GitHub, último commit de `main` contiene tus cambios.
+2. En Vercel, el deploy de **Production** apunta a `main`.
+3. El deploy de `work` aparece como **Preview** (no producción).
+4. Si cambiaste la rama de producción, usa **Redeploy** una vez para sincronizar.
